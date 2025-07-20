@@ -1,0 +1,52 @@
+name: "Choreon - Pipeline"
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    outputs:
+      ref_name: $
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: extract_ref
+        run: |
+          echo "ref_name=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy service
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y curl
+          export CHOREON_VERSION=0.0.0-staging
+          curl -fsSL https://public.choreon.dev/artifacts/choreon-cli/install.sh | bash
+          curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+      - name: Use version
+        run: |
+          yq eval -i ".image.versionSet.live.version = \"${{ needs.build.outputs.ref_name }}\"" .choreon
+
+      - name: Deploy
+        env:
+          CHOREON_TOKEN: $
+        run: choreon service deploy
