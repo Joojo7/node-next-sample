@@ -7,13 +7,16 @@ interface Note {
   content: string;
 }
 
-const apiUrl = "http://localhost:8000"; // Replace with your backend API URL
+const apiUrl = "http://localhost:8000"; // "https://joojodontoh.online/"
 
 const NotesApp = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignup, setIsSignup] = useState(false); // Track if the user is in signup mode
 
   // Fetch all notes
   const fetchNotes = async () => {
@@ -84,7 +87,7 @@ const NotesApp = () => {
   };
 
   // Handle login for JWT (simplified example)
-  const handleLogin = async (username: string, password: string) => {
+  const handleLogin = async () => {
     const response = await fetch(`${apiUrl}/login`, {
       method: "POST",
       headers: {
@@ -95,6 +98,23 @@ const NotesApp = () => {
 
     const data = await response.json();
     setAuthToken(data.token);
+  };
+
+  // Handle signup for new user
+  const handleSignup = async () => {
+    const response = await fetch(`${apiUrl}/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await response.json();
+    // Automatically login after signup (optional)
+    if (data.token) {
+      setAuthToken(data.token);
+    }
   };
 
   useEffect(() => {
@@ -109,17 +129,49 @@ const NotesApp = () => {
 
       {!authToken ? (
         <div>
-          <input
-            type="text"
-            placeholder="Username"
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            onChange={(e) => setContent(e.target.value)}
-          />
-          <button onClick={() => handleLogin(title, content)}>Login</button>
+          {!isSignup ? (
+            <div>
+              <h2>Login</h2>
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button onClick={handleLogin}>Login</button>
+              <p>
+                Don't have an account?{" "}
+                <button onClick={() => setIsSignup(true)}>Sign Up</button>
+              </p>
+            </div>
+          ) : (
+            <div>
+              <h2>Sign Up</h2>
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button onClick={handleSignup}>Sign Up</button>
+              <p>
+                Already have an account?{" "}
+                <button onClick={() => setIsSignup(false)}>Login</button>
+              </p>
+            </div>
+          )}
         </div>
       ) : (
         <div>
