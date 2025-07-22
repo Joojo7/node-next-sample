@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface Note {
   id: number;
@@ -17,20 +17,6 @@ const NotesApp = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(false); // Track if the user is in signup mode
-
-  // Fetch all notes
-  const fetchNotes = async () => {
-    if (!authToken) return;
-
-    const response = await fetch(`${apiUrl}/notes`, {
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-    });
-
-    const data = await response.json();
-    setNotes(data);
-  };
 
   // Create a new note
   const createNote = async (e: React.FormEvent) => {
@@ -117,11 +103,26 @@ const NotesApp = () => {
     }
   };
 
+
+  const fetchNotes = useCallback(async () => {
+    if (!authToken) return;
+
+    const response = await fetch(`${apiUrl}/notes`, {
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    const data = await response.json();
+    setNotes(data);
+  }, [authToken]); // Include authToken as dependency
+
+  // Fetch all notes when authToken changes
   useEffect(() => {
     if (authToken) {
       fetchNotes();
     }
-  }, [authToken]);
+  }, [authToken, fetchNotes]);
 
   return (
     <div className="container">
@@ -145,8 +146,8 @@ const NotesApp = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button onClick={handleLogin}>Login</button>
+              <p>Don&apos;t have an account?</p>
               <p>
-                Don't have an account?{" "}
                 <button onClick={() => setIsSignup(true)}>Sign Up</button>
               </p>
             </div>
