@@ -49,4 +49,5 @@ jobs:
       - name: Deploy
         run: |
           export CHOREON_TOKEN=${{ secrets.CHOREON_TOKEN }}
+          choreon version
           choreon service deploy
