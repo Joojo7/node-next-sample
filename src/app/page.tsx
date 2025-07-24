@@ -7,7 +7,7 @@ interface Note {
   content: string;
 }
 
-const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`;
 
 
 const NotesApp = () => {
