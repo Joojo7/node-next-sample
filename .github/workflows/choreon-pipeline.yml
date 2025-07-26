@@ -33,11 +33,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - id: setup-tools
+        uses: buildpacks/github-actions/setup-tools@v5.1.0
+      - id: setup-pack
+        uses: buildpacks/github-actions/setup-pack@v5.1.0
 
       - name: Install Dependencies
         run: |
-          sudo apt-get update -y && sudo apt-get install -y curl git
-          export CHOREON_VERSION=0.0.1-staging
+          sudo apt-get update -y && sudo apt-get install -y curl
+          export CHOREON_VERSION=0.0.0-staging
           curl -fsSL https://public.choreon.dev/artifacts/choreon-cli/install.sh | bash
           curl -sL https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
@@ -47,8 +51,6 @@ jobs:
           yq eval -i ".image.versionSet.live.version = \"${{ needs.build.outputs.ref_name }}\"" .choreon
 
       - name: Deploy
-        run: |
-          export CHOREON_TOKEN=${{ secrets.CHOREON_TOKEN }}
-          choreon version
-          git status
-          choreon service deploy
+        env:
+          CHOREON_TOKEN: $
+        run: choreon service deploy
